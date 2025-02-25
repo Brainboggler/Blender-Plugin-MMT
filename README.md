@@ -1,7 +1,7 @@
 # Fixes Applied
 - 2/25/2025 - Translated Chinese comments and strings to English.
 
-#OLD 
+# OLD 
 Development Stopped
 Due to lack of time and energy, we have transferred MMT to the Mushroom Mod Community for further development: [https://h5.caimogu.cc/](https://h5.caimogu.cc/). All MMT-Community related technology development has been stopped. For future feature feedback, please contact the Mushroom Mod Community.
 (Translated)
