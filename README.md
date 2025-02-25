@@ -1,4 +1,8 @@
-# Development Stopped
+# Fixes Applied
+- 2/25/2025 - Translated Chinese comments and strings to English.
+
+#OLD 
+Development Stopped
 Due to lack of time and energy, we have transferred MMT to the Mushroom Mod Community for further development: [https://h5.caimogu.cc/](https://h5.caimogu.cc/). All MMT-Community related technology development has been stopped. For future feature feedback, please contact the Mushroom Mod Community.
 (Translated)
 
@@ -29,7 +33,3 @@ Only support Blender 3.6 LTS:
 https://www.blender.org/download/lts/3-6/
 
 (4.2LTS support will be added when most other plugins for game mod use are upgraded to 4.2LTS)
-
-# Fixes Applied
-- 2/25/2025 Translated Chinese comments and strings to English.
-
