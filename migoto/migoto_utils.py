@@ -3,7 +3,8 @@ import numpy
 import operator  # to get function names for operators like @, +, -
 import struct
 
-# 这里使用type关键字创建了一个类，类名是DummyIOOBJOrientationHelper，(object,)表示继承自object对象，{}表示没定义属性和方法
+# Here, a class is created using the type keyword. The class name is DummyIOOBJOrientationHelper,
+#  (object,) indicates inheritance from the object class, and {} indicates no properties or methods are defined.
 IOOBJOrientationHelper = type('DummyIOOBJOrientationHelper', (object,), {})
 
 # Constants

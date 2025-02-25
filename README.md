@@ -1,12 +1,13 @@
-# 已停止开发
-由于时间精力不足，去忙开发AMT了，MMT已转交给采蘑菇Mod社区开发：https://h5.caimogu.cc/。 所有MMT-Community相关技术已停止开发，后续功能反馈请反馈到采蘑菇。
+# Development Stopped
+Due to lack of time and energy, we have transferred MMT to the Mushroom Mod Community for further development: [https://h5.caimogu.cc/](https://h5.caimogu.cc/). All MMT-Community related technology development has been stopped. For future feature feedback, please contact the Mushroom Mod Community.
+(Translated)
 
 # MMT-Blender-Plugin
 This is a special fork version of DarkStarSword's blender_3dmigoto.py, and code learned from a lot of similar projects.
 We modified some code to better meet our needs, here is a list for all credits.
 
-Fork From:
-- @DarkStarSword        3D-fixs                 https://github.com/DarkStarSword/3d-fixes/blob/master/blender_3dmigoto.py
+Forked From:
+- @DarkStarSword        3D-fixes                 https://github.com/DarkStarSword/3d-fixes/blob/master/blender_3dmigoto.py
 
 Reference Links:
 - @leotorrez            LeoTools                https://github.com/leotorrez/LeoTools
@@ -14,17 +15,21 @@ Reference Links:
 - @SpectrumQT           WWMI-TOOLS              https://github.com/SpectrumQT/WWMI-TOOLS
 - @falling-ts           free-model              https://github.com/falling-ts/free-model
 - @SilentNightSound     GI-Model-Importer       https://github.com/SilentNightSound/GI-Model-Importer
-- @SilentNightSound     GI-Model-Importer       https://github.com/SilentNightSound/SR-Model-Importer
+- @SilentNightSound     SR-Model-Importer       https://github.com/SilentNightSound/SR-Model-Importer
 - @eArmada8             vbuffer_merge_split     https://github.com/eArmada8/vbuffer_merge_split
 - @eArmada8             gust_stuff              https://github.com/eArmada8/gust_stuff
 
 # Develop Environment
 - Visual Studio Code
-- Blender Development(Plugin)
+- Blender Development (Plugin)
 - pip install fake-bpy-module-3.6
 
 # Notice
 Only support Blender 3.6 LTS:
 https://www.blender.org/download/lts/3-6/
 
-(4.2LTS support will be add when most of other plugins for game mod use is upgrade to 4.2LTS)
+(4.2LTS support will be added when most other plugins for game mod use are upgraded to 4.2LTS)
+
+# Fixes Applied
+- Translated Chinese comments and strings to English.
+

@@ -80,18 +80,19 @@ class InputLayoutElement(object):
             return '%s%i' % (self.SemanticName, self.SemanticIndex)
         return self.SemanticName
 
+    # Merged the improvements into the pad() function below
     def pad(self, data, val):
+        # Here SinsOfSeven made improvements: https://github.com/DarkStarSword/3d-fixes/issues/32
+        # But it cannot be used in 3.6.8LTS testing
 
-        padding = format_components(self.Format) - len(data)
-        assert (padding >= 0)
-        return data + [val] * padding
-
-        # 这里SinsOfSeven做了改进：https://github.com/DarkStarSword/3d-fixes/issues/32
-        # 但是3.6.8LTS测试无法使用
-        # padding = self.format_len - len(data)
+        # padding = format_components(self.Format) - len(data)
         # assert (padding >= 0)
-        # data.extend([val] * padding)
-        # return data
+        # return data + [val] * padding
+
+         padding = self.format_len - len(data)
+         assert (padding >= 0)
+         data.extend([val] * padding)
+         return data
 
 
     def clip(self, data):
@@ -156,7 +157,7 @@ class InputLayout(object):
         buf = bytearray(self.stride)
 
         for semantic, data in vertex.items():
-            if semantic.startswith('~'):
+            if (semantic.startswith('~')):
                 continue
             elem = self.elems[semantic]
             data = elem.encode(data)
@@ -177,14 +178,14 @@ class InputLayout(object):
 
 
 class HashableVertex(dict):
-    # 旧的代码注释掉了，不过不删，留着用于参考防止忘记原本的设计
+    # The old code is commented out, but not deleted, kept for reference to prevent forgetting the original design
     # def __hash__(self):
     #     # Convert keys and values into immutable types that can be hashed
     #     immutable = tuple((k, tuple(v)) for k, v in sorted(self.items()))
     #     return hash(immutable)
 
     def __hash__(self):
-        # 这里将步骤拆分开来，更易于理解
+        # Here the steps are broken down for easier understanding
         immutable_items = []
         for k, v in self.items():
             tuple_v = tuple(v)

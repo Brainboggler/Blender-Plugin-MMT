@@ -64,10 +64,10 @@ def load_3dmigoto_mesh(operator, paths):
 
 def import_normals_step1(mesh, data):
     # Nico:
-    # Blender不支持4D normal，而UE4 Normal的的第四个分量一般情况下是1，可以忽略后导入
-    # 而BINORMAL第四个分量不是1就是-1，这时第四个分量代表手性信息，需要根据是否为-1进行向量翻转。
-    # 不过暂时没有发现BINORMAL，现代引擎一般都用不上BINORMAL了，所以我们这里不再考虑兼容
-    # 这里直接忽略第四个值，无需多余判断，如果真有游戏是4D的Position那到时候再研究
+    # Blender does not support 4D normal, and the fourth component of UE4 Normal is generally 1, which can be ignored and imported
+    # The fourth component of BINORMAL is either 1 or -1, and the fourth component represents chirality information, which needs to be flipped if it is -1.
+    # However, BINORMAL has not been found for the time being, and modern engines generally do not use BINORMAL, so we no longer consider compatibility here
+    # Here we directly ignore the fourth value, no need for extra judgment, if there is a game with 4D Position, we will study it then
     # if len(data[0]) == 4:
         # if [x[3] for x in data] != [0.0] * len(data):
         #     raise Fatal('Normals are 4D')
@@ -216,7 +216,7 @@ def import_faces_from_ib(mesh, ib):
     mesh.polygons.foreach_set('loop_total', [3] * len(ib.faces))
 
 
-# Nico: 这玩意基本上用不到吧，没有IB的情况下要怎么做到自动生成顶点索引呢？这样生成出来真的和游戏里替换所需要的格式一样吗？
+# Nico: This thing is basically useless, how can you automatically generate vertex indices without IB? Is the generated format really the same as the one needed for replacement in the game?
 def import_faces_from_vb(mesh, vb):
     # Only lightly tested
     num_faces = len(vb.vertices) // 3
@@ -318,12 +318,12 @@ def import_3dmigoto(operator, context, paths, **kwargs):
             obj.append(import_3dmigoto_vb_ib(operator, context, [p], **kwargs))
         except Fatal as e:
             operator.report({'ERROR'}, str(e) + ': ' + str(p[:2]))
-    # FIXME: Group objects together  (Nico:这里他的意思应该是导入后自动放入一个集合里，我们也需要这个功能)
+    # FIXME: Group objects together  (Nico: Here he means to automatically put them into a collection after importing, we also need this feature)
     return obj
 
 
 def create_material_with_texture(obj, mesh_name, directory):
-    # Изменим имя текстуры, чтобы оно точно совпадало с шаблоном (Change the texture name to match the template exactly)
+    # Change the texture name to match the template exactly
     material_name = f"{mesh_name}_Material"
     # texture_name = f"{mesh_name}-DiffuseMap.jpg"
 
@@ -334,25 +334,25 @@ def create_material_with_texture(obj, mesh_name, directory):
     else:
         texture_suffix = "-DiffuseMap.tga"
 
-    # 查找是否存在满足条件的转换好的tga贴图文件
+    # Check if there is a converted tga texture file that meets the conditions
     texture_path = find_texture(texture_prefix, texture_suffix, directory)
 
-    # 如果不存在，试试查找jpg文件
+    # If not, try to find the jpg file
     if texture_path is None:
         if len(mesh_name_split) > 1:
             texture_suffix = f"{mesh_name_split[1]}-DiffuseMap.jpg"  # Part Name
         else:
             texture_suffix = "-DiffuseMap.jpg"
 
-        # 查找jpg文件，如果这里没找到的话后面也是正常的，但是这里如果找到了就能起到兼容旧版本jpg文件的作用
+        # Find the jpg file, if not found here, it is also normal, but if found here, it can be compatible with the old version jpg file
         texture_path = find_texture(texture_prefix, texture_suffix, directory)
 
-    # Nico: 这里如果没有检测到对应贴图则不创建材质，也不新建BSDF
-    # 否则会造成合并模型后，UV编辑界面选择不同材质的UV会跳到不同UV贴图界面导致无法正常编辑的问题
+    # Nico: If no corresponding texture is detected here, do not create material or new BSDF
+    # Otherwise, after merging the model, selecting different materials in the UV editing interface will jump to different UV texture interfaces, making it impossible to edit normally
     if texture_path is None:
         pass
     else:
-        # Создание нового материала (Create new materials)
+        # Create new materials
         material = bpy.data.materials.new(name=material_name)
         material.use_nodes = True
 
@@ -362,18 +362,18 @@ def create_material_with_texture(obj, mesh_name, directory):
             bsdf = material.node_tree.nodes.get("Principled BSDF")
 
         if bsdf:
-            # Поиск текстуры (Search for textures)
+            # Search for textures
 
             if texture_path:
                 tex_image = material.node_tree.nodes.new('ShaderNodeTexImage')
                 tex_image.image = bpy.data.images.load(texture_path)
 
-                # 因为tga格式贴图有alpha通道，所以必须用CHANNEL_PACKED才能显示正常颜色
+                # Because tga format textures have alpha channels, CHANNEL_PACKED must be used to display normal colors
                 tex_image.image.alpha_mode = "CHANNEL_PACKED"
 
                 material.node_tree.links.new(bsdf.inputs['Base Color'], tex_image.outputs['Color'])
 
-            # Применение материала к мешу (Materials applied to bags)
+            # Materials applied to mesh
             if obj.data.materials:
                 obj.data.materials[0] = material
             else:
@@ -404,7 +404,7 @@ def import_3dmigoto_vb_ib(operator, context, paths, flip_texcoord_v=True, axis_f
     obj['3DMigoto:VBStride'] = vb.layout.stride
     obj['3DMigoto:FirstVertex'] = vb.first
 
-    # 这里我们不像GIMI一样在导入的时候就把Format变成R32_UINT，我们只在导出的时候改变格式
+    # Here we do not change the Format to R32_UINT when importing, we only change the format when exporting
     if ib is not None:
         import_faces_from_ib(mesh, ib)
         # Attach the index buffer layout to the object for later exporting.
@@ -421,7 +421,7 @@ def import_3dmigoto_vb_ib(operator, context, paths, flip_texcoord_v=True, axis_f
 
     # Validate closes the loops so they don't disappear after edit mode and probably other important things:
     mesh.validate(verbose=False, clean_customdata=False)  # *Very* important to not remove lnors here!
-    # 这里的lnors可能指的是mesh.loop里的normal？
+    # The lnors here may refer to the normal in mesh.loop?
     # Not actually sure update is necessary. It seems to update the vertex normals, not sure what else:
     mesh.update()
 
@@ -438,27 +438,27 @@ def import_3dmigoto_vb_ib(operator, context, paths, flip_texcoord_v=True, axis_f
     operator.report({'INFO'}, "Import Into 3Dmigoto")
 
     import bmesh
-    # 创建 BMesh 副本
+    # Create BMesh copy
     bm = bmesh.new()
     bm.from_mesh(mesh)
     
 
-    # 删除松散点 delete loose before get this
+    # Delete loose vertices before getting this
     # bm.verts.ensure_lookup_table()
     # for v in bm.verts:
     #     if not v.link_faces:
     #         bm.verts.remove(v)
 
-    # 将 BMesh 更新回原始网格
+    # Update BMesh back to original mesh
     bm.to_mesh(mesh)
     bm.free()
 
-    # 设置导入时的顶点数和索引数，用于插件右键对比是否和原本顶点数量一致
+    # Set the number of vertices and indices when importing, used to compare whether the number of vertices is consistent with the original in the plugin right-click
     obj['3DMigoto:OriginalVertexNumber'] = len(mesh.vertices)
     obj['3DMigoto:OriginalIndicesNumber'] = len(mesh.loops)
 
     # ----------------------------------------------------------------------------------------------------------------------------
-    # Nico: 下面是由rayvy提议的添加贴图自动导入支持，需要大量测试如何以优雅的方式和MMT结合在一起
+    # Nico: Below is the proposal by rayvy to add texture auto-import support, need extensive testing to see how to elegantly integrate with MMT
     mesh_prefix: str = str(mesh.name).split(".")[0]
     # operator.report({'INFO'}, mesh_prefix)
     create_material_with_texture(obj, mesh_prefix, os.path.dirname(paths[0][0][0]))
@@ -608,7 +608,7 @@ class Import3DMigotoRaw(bpy.types.Operator, ImportHelper, IOOBJOrientationHelper
 
     flip_texcoord_v: BoolProperty(
         name="Flip TEXCOORD V",
-        description="Flip TEXCOORD V asix during importing",
+        description="Flip TEXCOORD V axis during importing",
         default=True,
     ) # type: ignore
 
@@ -632,8 +632,8 @@ class Import3DMigotoRaw(bpy.types.Operator, ImportHelper, IOOBJOrientationHelper
         global migoto_raw_import_options
         migoto_raw_import_options = self.as_keywords(ignore=('filepath', 'files', 'filter_glob'))
 
-        # 我们需要添加到一个新建的集合里，方便后续操作
-        # 这里集合的名称需要为当前文件夹的名称
+        # We need to add to a new collection for subsequent operations
+        # The name of the collection here needs to be the name of the current folder
         collection_name = os.path.basename(os.path.dirname(self.filepath))
         collection = bpy.data.collections.new(collection_name)
         bpy.context.scene.collection.children.link(collection)
@@ -649,7 +649,7 @@ class Import3DMigotoRaw(bpy.types.Operator, ImportHelper, IOOBJOrientationHelper
 
                 if fmt_path is not None:
                     obj_results = import_3dmigoto_raw_buffers(self, context, fmt_path, fmt_path, vb_path=vb_path, ib_path=ib_path, **migoto_raw_import_options)
-                    # 虽然复制之后名字会多个001 002这种，但是不影响正常使用，只要能达到效果就行了
+                    # Although the name will have 001 002 after copying, it does not affect normal use, as long as it achieves the effect
                     for obj in obj_results:
                         new_object = obj.copy()
                         new_object.data = obj.data.copy()

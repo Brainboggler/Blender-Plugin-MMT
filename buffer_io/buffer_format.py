@@ -1,41 +1,41 @@
 '''
-写给未来的MMT设计：
+To the future MMT design:
 
-1.旧的3Dmigoto的ib和vb格式无法把形态键Buffer数据一起一键导入到Blender中
-以及后续常用的BoneMatrix技术，PositionMatrix技术的文件，也无法直观集成进来。
+1. The old 3Dmigoto ib and vb formats cannot import shape key Buffer data into Blender with one click,
+nor can they intuitively integrate commonly used BoneMatrix technology and PositionMatrix technology files.
 
-2.每次从FrameAnalysis文件夹中提取后都要把分离的Buffer文件转换成.ib .vb .fmt文件来导入到Blender中
-每次导出之后都要进行毫无意义的把ib vb fmt文件拆分为buffer文件
+2. Every time you extract from the FrameAnalysis folder, you have to convert the separated Buffer files into .ib .vb .fmt files to import into Blender.
+Every time you export, you have to split the ib vb fmt files into buffer files, which is meaningless.
 
-这一个融合和分割，岂不是脱了裤子放屁多此一举。
+Isn't this fusion and splitting redundant?
 
-所以能不能跳过这个融合和分割的过程？？为什么一定要使用DrakStarSword原本的设计呢，很明显对于游戏Mod制作来说
-如果Blender插件能直接对Buffer进行导入和导出，那么就能在提取和生成二创模型时减少这个额外的分割工作
-并且这样也能更加直观的使用010Editor看到每个Buffer中的内容，也更方便直接性的Buffer操作。
+So can we skip this fusion and splitting process? Why must we use DrakStarSword's original design? It is obvious that for game mod production,
+if the Blender plugin can directly import and export Buffers, it can reduce this extra splitting work when extracting and generating secondary creation models.
+This also allows for more intuitive use of 010Editor to see the contents of each Buffer and facilitates direct Buffer operations.
 
-就像MMT刚开始使用类似的GIMI的收集逻辑，从txt里进行收集一样，完全被前人错误的思路给带偏了，现在Blender插件的设计同样如此，前人的设计同样存在问题。
+Just like MMT initially used a similar GIMI collection logic to collect from txt, it was completely misled by the wrong ideas of predecessors. The current Blender plugin design is the same, with problems in the predecessors' design.
 
-所以要设计一种新的数据格式，目前有两种思路：
-1.设计一种.3dm格式把所有数据都装进去，就不需要.ib .vb .fmt三种不同的格式了。
-（感觉没必要，不是很好维护，除非生成的Mod也用这种格式，但是那样就要重构3Dmigoto了，不值得，而且不利于其它人进行二次开发，还需要一个额外的文件格式解析器的步骤，不够直观）
+So we need to design a new data format. Currently, there are two ideas:
+1. Design a .3dm format to put all the data in, so there is no need for three different formats: .ib .vb .fmt.
+(It seems unnecessary and not easy to maintain, unless the generated Mod also uses this format, but that would require restructuring 3Dmigoto, which is not worth it and not conducive to secondary development by others. It also requires an additional file format parser step, which is not intuitive.)
 
-2.设计一个新的 format.json，这样Blender插件读取这个json文件来决定哪些Buffer怎样导入到Blender中进行显示。
+2. Design a new format.json, so the Blender plugin reads this json file to decide how to import Buffers into Blender for display.
 
-所以最终采用新的format.json + 其它Buffer文件的形式来描述一个模型的文件夹
+So we ultimately adopt the form of a new format.json + other Buffer files to describe a model's folder.
 
-所以现有的Blender插件设计基本上要完全舍弃并重新设计了，设计思路可以参考WWMI，WWMI在这方面做的还不错。
+Therefore, the existing Blender plugin design needs to be completely abandoned and redesigned. The design ideas can refer to WWMI, which does a good job in this regard.
 
-但是如何保证兼容性问题，使得其它人导入的.ib .vb .fmt格式，以及-ib.txt 和-vb0.txt格式的模型也能够支持呢？
-这一点我觉得只要搞定从模型到写出文件的解析步骤即可，对于.ib .vb以及.txt格式的支持应该安装其它的插件来提供支持，比如使用XXMI等插件？
+But how to ensure compatibility so that models imported in .ib .vb .fmt format, as well as -ib.txt and -vb0.txt format, can also be supported?
+I think as long as the parsing steps from model to file writing are resolved, support for .ib .vb and .txt formats should be provided by other plugins, such as using XXMI, etc.
 
-但是如果这样设计的话，整个MMT的架构就完全改变了，现有的MMT逻辑以及Blender插件逻辑都得重写
-不过由于D3D11以及后续普遍使用的D3D12也会普遍使用Buffer格式，所以设计一种新的通用Buffer格式是完全值得的。
+However, if designed this way, the entire MMT architecture will be completely changed, and the existing MMT logic and Blender plugin logic will need to be rewritten.
+But since D3D11 and the subsequent commonly used D3D12 will generally use Buffer format, designing a new general Buffer format is entirely worthwhile.
 
-主要的问题在于3Dmigoto真的值得嘛？它的使用范围实在是太小，只有数个游戏支持GPU-PreSkinning，不过可以预见未来的游戏应该都会支持GPU-PreSkinning。
-而且未来一定会出现通用的GPU-PreSkinning的骨骼融合框架以及形态键框架以及ComputeShader重算骨骼姿态框架等等。
-在设计时应该考虑到未来对于其它支持Buffer替换的工具的格式支持，所以基于Buffer和json描述文件的设计是完全可行且向后兼容的。
+The main issue is whether 3Dmigoto is really worth it? Its usage range is too small, with only a few games supporting GPU-PreSkinning, but it can be expected that future games will support GPU-PreSkinning.
+Moreover, in the future, there will definitely be general GPU-PreSkinning bone fusion frameworks, shape key frameworks, and ComputeShader recalculation bone pose frameworks, etc.
+The design should consider future support for other tools that support Buffer replacement, so the design based on Buffer and json description files is entirely feasible and backward compatible.
 
-所以就这么决定了，后续进行格式改变，朝着更通用兼容的方向进行开发：面向未来的程序设计 。。。。
-这次决定也许在短期内看不到效果，不过3到5年内，当GPU算力突破，当DX12全面普及，当基于ReShade架构的DX12Buffer Mod工具面世时，MMT现在繁琐的准备和重构工作就是值得的。
-决定每个月拿出1到2天进行更新，改为长期技术开发，赌未来的GPU确实可以做到我现在推测的能力。
+So it's decided, we will proceed with format changes towards a more general and compatible direction: future-oriented program design...
+This decision may not show results in the short term, but within 3 to 5 years, when GPU computing power breaks through, when DX12 is fully popularized, and when DX12Buffer Mod tools based on the ReShade architecture emerge, the current cumbersome preparation and restructuring work of MMT will be worth it.
+Decide to spend 1 to 2 days each month for updates, turning it into long-term technical development, betting that future GPUs can indeed achieve the capabilities I am currently speculating.
 '''

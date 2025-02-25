@@ -32,7 +32,7 @@ register_classes = (
     Import3DMigotoReferenceInputFormat,
     Export3DMigoto,
 
-    # mesh_operator 右键菜单栏
+    # mesh_operator right-click menu
     RemoveUnusedVertexGroupOperator,
     MergeVertexGroupsWithSameNumber,
     FillVertexGroupGaps,
@@ -47,11 +47,11 @@ register_classes = (
     MMTSetAutoSmooth89,
     SplitMeshByCommonVertexGroup,
 
-    # MMT的一键导入导出
+    # MMT one-click import/export
     MMTImportAllTextModel,
     MMTExportAllIBVBModel,
 
-    # MMD类型动画Mod支持
+    # MMD type animation Mod support
     MMDModIniGenerator
 )
 
@@ -61,15 +61,15 @@ def register():
         # make_annotations(cls)
         bpy.utils.register_class(cls)
 
-    # 新建一个属性用来专门装MMT的路径
+    # Create a new property specifically for storing MMT paths
     bpy.types.Scene.mmt_props = bpy.props.PointerProperty(type=MMTPathProperties)
     # mesh_operator
     bpy.types.VIEW3D_MT_object_context_menu.append(menu_func_migoto_right_click)
 
-    # 在Blender退出前保存选择的MMT的路径
+    # Save the selected MMT path before Blender exits
     bpy.app.handlers.depsgraph_update_post.append(save_mmt_path)
 
-    # MMT数值保存的变量
+    # Variables for saving MMT values
     bpy.types.Scene.mmt_mmd_animation_mod_start_frame = bpy.props.IntProperty(name="Start Frame")
     bpy.types.Scene.mmt_mmd_animation_mod_end_frame = bpy.props.IntProperty(name="End Frame")
     bpy.types.Scene.mmt_mmd_animation_mod_play_speed = bpy.props.FloatProperty(name="Play Speed")
@@ -84,7 +84,7 @@ def unregister():
     # mesh_operator
     bpy.types.VIEW3D_MT_object_context_menu.remove(menu_func_migoto_right_click)
 
-    # 退出注册时删除MMT的MMD变量
+    # Delete MMT's MMD variables upon unregistering
     del bpy.types.Scene.mmt_mmd_animation_mod_start_frame
     del bpy.types.Scene.mmt_mmd_animation_mod_end_frame
     del bpy.types.Scene.mmt_mmd_animation_mod_play_speed

@@ -5,25 +5,24 @@ import bpy.props
 from ..mmt_panel.panel_ui import *
 from datetime import datetime
 
-
 class MMDModIniGenerator(bpy.types.Operator):
     bl_idname = "mmt.export_mmd_animation_mod"
     bl_label = "Export MMD Based Animation Mod"
 
-    # OutputFolder路径
+    # Output Folder path
     output_folder: bpy.props.StringProperty(
         name="Output Folder",
         description="The Output Folder of this game"
     ) # type: ignore
     
-    # 完整buf文件导出路径  operator_export_mmd_bone_matrix.output_bone_matrix_filename = output_folder_path + "BoneMatrix.buf"
+    # Complete buf file export path
     output_bone_matrix_file_path = None
-    # 完整ini文件导出路径
+    # Complete ini file export path
     output_ini_file_path = None
 
     def execute(self, context):
-        # 根据当前的姿态
-        # 获取当前选中的骨骼名称
+        # Based on the current pose
+        # Get the name of the currently selected armature
         selected_armature = bpy.context.object
         armature_name = ""
         if selected_armature and selected_armature.type == 'ARMATURE':
@@ -31,9 +30,9 @@ class MMDModIniGenerator(bpy.types.Operator):
         else:
             armature_name = "No Armature selected"
 
-        # self.report({'INFO'}, "当前选中的骨骼名称:" + armature_name)
+        # self.report({'INFO'}, "Name of the currently selected armature:" + armature_name)
 
-        # 获取当前骨骼下面的第一个网格名称
+        # Get the name of the first mesh under the current armature
         mesh_name = None
         if selected_armature:
             for obj in selected_armature.children:
@@ -41,25 +40,25 @@ class MMDModIniGenerator(bpy.types.Operator):
                     mesh_name = obj.name
                     break
 
-        # self.report({'INFO'}, "当前骨骼下面的第一个网格名称:" + mesh_name)
+        # self.report({'INFO'}, "Name of the first mesh under the current armature:" + mesh_name)
 
         draw_ib = str(mesh_name).split("-")[0]
 
-        # 获取当前日期
+        # Get the current date
         current_date = datetime.now().date()
-        # 将日期转换为指定格式的字符串
+        # Convert the date to a string in the specified format
         date_string = current_date.strftime("%Y_%m_%d")
-        # 读取IniConfig.json中的数据
+        # Read data from IniConfig.json
         output_draw_ib_path = self.output_folder + date_string + "/" + draw_ib + "/"
 
-        # 然后导出这个骨骼姿态变换矩阵
+        # Then export the bone pose transformation matrix
         output_bonematrix_file_path = output_draw_ib_path + draw_ib + "PoseMatrix.buf"
         frame_start = context.scene.mmt_mmd_animation_mod_start_frame
         frame_end = context.scene.mmt_mmd_animation_mod_end_frame
         play_speed = context.scene.mmt_mmd_animation_mod_play_speed
 
-        # 写出骨骼变换矩阵
-        # Bone matrix's core logic learned from AGMG discord,credit to @SilentNightSound.
+        # Write out the bone transformation matrix
+        # Bone matrix's core logic learned from AGMG discord, credit to @SilentNightSound.
         result = bytearray()
         for z in range(frame_start, frame_end):
             context.scene.frame_set(z)
@@ -82,9 +81,9 @@ class MMDModIniGenerator(bpy.types.Operator):
         with open(output_bonematrix_file_path, "wb") as f:
             f.write(result)
 
-        # 然后需要获取一下顶点组数量
+        # Then get the number of vertex groups
         vertex_group_number = len(bpy.data.objects[mesh_name].vertex_groups)
-        # 这里测试可以正常输出
+        # This test can output normally
         self.report({'INFO'}, "VertexGroupNumber:" + str(vertex_group_number))
 
         return {'FINISHED'}

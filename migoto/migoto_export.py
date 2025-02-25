@@ -20,7 +20,7 @@ def mesh_triangulate(me):
 
 def blender_vertex_to_3dmigoto_vertex(mesh, obj, blender_loop_vertex, layout, texcoords):
 
-    # 根据循环顶点中的顶点索引来从总的顶点中获取对应的顶点
+    # Get the corresponding vertex from the total vertices based on the vertex index in the loop vertex
     blender_vertex = mesh.vertices[blender_loop_vertex.vertex_index]
     vertex = {}
     seen_offsets = set()
@@ -30,11 +30,11 @@ def blender_vertex_to_3dmigoto_vertex(mesh, obj, blender_loop_vertex, layout, te
     vertex_groups = sorted(blender_vertex.groups, key=lambda x: x.weight, reverse=True)
 
     for elem in layout:
-        # 只处理per-vertex的
+        # Only process per-vertex
         if elem.InputSlotClass != 'per-vertex':
             continue
 
-        # 用于跳过在同一个顶点上重复元素的处理，这个代码真的会被执行到吗？看起来永远不会触发。
+        # Used to skip processing of duplicate elements on the same vertex, will this code really be executed? It seems it will never trigger.
         if (elem.InputSlot, elem.AlignedByteOffset) in seen_offsets:
             continue
         seen_offsets.add((elem.InputSlot, elem.AlignedByteOffset))
@@ -70,7 +70,7 @@ def blender_vertex_to_3dmigoto_vertex(mesh, obj, blender_loop_vertex, layout, te
                     uvs += list(texcoords[uv_name][blender_loop_vertex.index])
             vertex[elem.name] = uvs
 
-        # Nico: 不需要考虑BINORMAL，现代游戏的渲染基本上不会使用BINORMAL这种过时的渲染方案
+        # Nico: No need to consider BINORMAL, modern game rendering basically does not use the outdated rendering scheme of BINORMAL
         # elif elem.name.startswith('BINORMAL'):
             # Some DOA6 meshes (skirts) use BINORMAL, but I'm not certain it is
             # actually the binormal. These meshes are weird though, since they
@@ -117,24 +117,24 @@ def write_fmt_file(f, vb, ib):
 
 def export_3dmigoto(operator, context, vb_path, ib_path, fmt_path):
 
-    operator.report({'INFO'}, "导出是否保持相同顶点数：" + str(bpy.context.scene.mmt_props.export_same_number))
-    # 获取当前场景中的obj对象
+    operator.report({'INFO'}, "Export whether to keep the same number of vertices: " + str(bpy.context.scene.mmt_props.export_same_number))
+    # Get the obj object in the current scene
     obj = context.object
 
-    # 为空时不导出
+    # Do not export if empty
     if obj is None:
         raise Fatal('No object selected')
 
     stride = obj['3DMigoto:VBStride']
     layout = InputLayout(obj['3DMigoto:VBLayout'], stride=stride)
 
-    # 获取Mesh
+    # Get Mesh
     if hasattr(context, "evaluated_depsgraph_get"):  # 2.80
         mesh = obj.evaluated_get(context.evaluated_depsgraph_get()).to_mesh()
     else:  # 2.79
         mesh = obj.to_mesh(context.scene, True, 'PREVIEW', calc_tessface=False)
 
-    # 使用bmesh复制出一个新mesh并三角化
+    # Use bmesh to copy a new mesh and triangulate
     mesh_triangulate(mesh)
 
     try:
@@ -150,10 +150,10 @@ def export_3dmigoto(operator, context, vb_path, ib_path, fmt_path):
 
     # Calculates tangents and makes loop normals valid (still with our
     # custom normal data from import time):
-    # 这一步如果存在TANGENT属性则会导致顶点数量增加
+    # This step will increase the number of vertices if there is a TANGENT attribute
     mesh.calc_tangents()
 
-    # 拼凑texcoord层级，有几个UVMap就拼出几个来
+    # Assemble texcoord layers, assemble as many UVMaps as there are
     texcoord_layers = {}
     for uv_layer in mesh.uv_layers:
         texcoords = {}
@@ -184,10 +184,10 @@ def export_3dmigoto(operator, context, vb_path, ib_path, fmt_path):
     unique_position_vertices = {}
     '''
     Nico:
-        顶点转换为3dmigoto类型的顶点再经过hashable后，如果存在TANGENT则会导致数量变多，不存在则不会导致数量变多。
-        Nico: 初始的Vertex即使是经过TANGENT计算，数量也是和原来一样的
-        但是这里使用了blender_lvertex导致了生成的HashableVertex不一样，因为其它都是固定的只有这个blender_lvertex会改变
-        需要注意的是如果不计算TANGENT或者没有TANGENT属性时不会额外生成顶点
+        Converting vertices to 3dmigoto type vertices and then hashing them, if there is TANGENT, the number will increase, if not, the number will not increase.
+        Nico: The initial Vertex, even after TANGENT calculation, the number is the same as before
+        But using blender_lvertex here results in different HashableVertex being generated, because everything else is fixed, only this blender_lvertex will change
+        Note that if TANGENT is not calculated or there is no TANGENT attribute, no additional vertices will be generated
     '''
     for poly in mesh.polygons:
         face = []
@@ -197,12 +197,12 @@ def export_3dmigoto(operator, context, vb_path, ib_path, fmt_path):
 
             '''
             Nico:
-                首先将当前顶点计算为Hash后的顶点然后如果该计算后的Hash顶点不存在，则插入到indexed_vertices里
-                随后将该顶点添加到face[]里，索引为该顶点在字典里的索引
-                这里我们把获取到的vertex的切线加到一个vertex:切线值的字典中
-                如果vertex的顶点在字典中出现了，则返回字典中对应列表和当前值的平均值，否则不进行更新
-                这样就能得到每个Position对应的平均切线，在切线值相同的情况下，就不会产生额外的多余顶点了。
-                这里我选择简单的使用这个顶点第一次出现的TANGENT作为它的TANGENT，以此避免产生额外多余顶点的问题，后续可以优化为使用平均值作为TANGENT
+                First, calculate the current vertex into a hashed vertex, and if the calculated hashed vertex does not exist, insert it into indexed_vertices
+                Then add the vertex to face[], the index is the index of the vertex in the dictionary
+                Here we add the tangent of the obtained vertex to a dictionary of vertex:tangent values
+                If the vertex appears in the dictionary, return the average value of the corresponding list in the dictionary and the current value, otherwise do not update
+                This way, the average tangent for each Position can be obtained, and if the tangent values are the same, no additional redundant vertices will be generated.
+                Here I choose to simply use the TANGENT of this vertex the first time it appears as its TANGENT to avoid the problem of generating extra redundant vertices, and it can be optimized later to use the average value as TANGENT
             '''
             if bpy.context.scene.mmt_props.export_same_number:
                 if "POSITION" in vertex and "NORMAL" in vertex and "TANGENT" in vertex :
@@ -265,7 +265,7 @@ class Export3DMigoto(bpy.types.Operator, ExportHelper):
         options={'HIDDEN'},
     ) # type: ignore
 
-    # 默认选择文件路径
+    # Default file path
     filepath: bpy.props.StringProperty(
         name="File Path",
         description="Filepath used for exporting",
